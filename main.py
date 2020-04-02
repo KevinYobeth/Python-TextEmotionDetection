@@ -103,11 +103,14 @@ tweets[0] = tweets[0].apply(lambda x: " ".join(
 
 tweet_count = count_vect.transform(tweets[0])
 tweet_pred = lsvm.predict(tweet_count)
+tweet_conf = lsvm.decision_function(tweet_count)
 
-print('\nNo | Mood | Sentence ')
+print(tweet_conf)
+
+print('\nNo | Mood  | Confidence\t| Sentence ')
 for i in range(totalSentence):
     if (tweet_pred[i] == 0):
-        print(f'{i + 1}  | Happy | ', end='')
+        print(f'{i + 1}  | Happy | {tweet_conf[i]:.2f}\t| ' , end='')
     else:
-        print(f'{i + 1}  | Sad   | ', end='')
+        print(f'{i + 1}  | Sad   | {tweet_conf[i]:.2f}\t| ', end='')
     print(sentences[i])
