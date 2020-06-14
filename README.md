@@ -116,7 +116,7 @@ y_pred = lsvm.predict(X_val_count)
 print('lsvm using count vectors accuracy %s' % accuracy_score(y_pred, y_val))
 ```
 Training by learning the datasets.
-## 7. Input and Predicting
+## 8. Input and Predicting
 ```python
 totalSentence = int(input('Total sentence to input: '))
 
