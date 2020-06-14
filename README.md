@@ -74,10 +74,41 @@ def de_repeat(text):
 data['content'] = data['content'].apply(
     lambda x: " ".join(de_repeat(x) for x in x.split()))
 ```
+We process the text such removing punctuation etc.
 ## 4. Text Sorting
 ```python
+# Find the top 10,000 rarest words appearing in the data
+freq = pd.Series(' '.join(data['content']).split()).value_counts()[-10000:]
 
+# Removing all those rarely appearing words from the data
+freq = list(freq.index)
+data['content'] = data['content'].apply(
+    lambda x: " ".join(x for x in x.split() if x not in freq))
 ```
+The least 10000 used words are removed, since it won't or have little effect to the training.
+## 5. Data Labelling and Data Splitting
+```python
+# Encoding output labels 'sadness' as '1' & 'happiness' as '0'
+lbl_enc = preprocessing.LabelEncoder()
+y = lbl_enc.fit_transform(data.sentiment.values)
+
+# Splitting into training and testing data in 90:10 ratio
+X_train, X_val, y_train, y_val = train_test_split(
+    data.content.values, y, stratify=y, random_state=42, test_size=0.1, shuffle=True)
+```
+We encode the sentiment sadness as 1 and happiness as 0, then we split the dataset into 90:10 ratio. 90 For training and 10 for testing.
+## 6. Extracting Count Vector
+```python
+# Extracting Count Vectors Parameters
+count_vect = CountVectorizer(analyzer='word')
+count_vect.fit(data['content'])
+X_train_count = count_vect.transform(X_train)
+X_val_count = count_vect.transform(X_val)
+```
+Vectorizing the vocabulary
+## 7. 
+
+
 Stop words are natural language words which have very little meaning
 Textblob common text processing
 Sklearn Preprocessing Label Encoder = Encode target labels with value between 0 and n_classes-1.
