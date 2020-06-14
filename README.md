@@ -14,18 +14,20 @@ py -m textblob.download_corpora
 # How it works
 ## 1. Import all The Library Required
 ```python
+from sklearn.linear_model import SGDClassifier # Stochastic Gradient Descent
+from sklearn.metrics import accuracy_score # Calculate the accuracy score
+from sklearn.feature_extraction.text import CountVectorizer # Vectorize words
+from sklearn.model_selection import train_test_split # Splitting between training and testing data
+from sklearn import preprocessing # Used for label encoder
 import pandas as pd # To read file from csv
 import numpy as np # To calculate stuffs
 import sklearn # Machine learning library
-from nltk.corpus import stopwords # To remove stopwords
 from textblob import Word # Simple text processing
 import re # Regex for Python
 
-from sklearn import preprocessing # Used for label encoder
-from sklearn.model_selection import train_test_split # Splitting between training and testing data
-from sklearn.feature_extraction.text import CountVectorizer # Vectorize words
-from sklearn.metrics import accuracy_score # Calculate the accuract score
-from sklearn.linear_model import SGDClassifier # Stochastic Gradient Descent
+import nltk
+nltk.download('stopwords')
+nltk.download('wordnet')
 ```
 We import all the library that are required to run the program.
 ## 2. Loading and Removing All Irrelevant Rows
@@ -92,11 +94,11 @@ The least 10000 used words are removed, since it won't or have little effect to 
 lbl_enc = preprocessing.LabelEncoder()
 y = lbl_enc.fit_transform(data.sentiment.values)
 
-# Splitting into training and testing data in 90:10 ratio
+# Splitting into training and testing data in 70:30 ratio
 X_train, X_val, y_train, y_val = train_test_split(
-    data.content.values, y, stratify=y, random_state=42, test_size=0.1, shuffle=True)
+    data.content.values, y, stratify=y, random_state=42, test_size=0.3, shuffle=True)
 ```
-We encode the sentiment sadness as 1 and happiness as 0, then we split the dataset into 90:10 ratio. 90 For training and 10 for testing.
+We encode the sentiment sadness as 1 and happiness as 0, then we split the dataset into 70:30 ratio. 70 For training and 30 for testing.
 ## 6. Extracting Count Vector
 ```python
 # Extracting Count Vectors Parameters
@@ -106,12 +108,66 @@ X_train_count = count_vect.transform(X_train)
 X_val_count = count_vect.transform(X_val)
 ```
 Vectorizing the vocabulary
-## 7. 
+## 7. Training Data
+```python
+lsvm = SGDClassifier(alpha=0.01, random_state=5, max_iter=100, tol=None)
+lsvm.fit(X_train_count, y_train)
+y_pred = lsvm.predict(X_val_count)
+print('lsvm using count vectors accuracy %s' % accuracy_score(y_pred, y_val))
+```
+Training by learning the datasets.
+## 7. Input and Predicting
+```python
+totalSentence = int(input('Total sentence to input: '))
 
+sentences = []
+for i in range(totalSentence):
+    sentences.append(input(f'Sentence {i + 1}: '))
 
-Stop words are natural language words which have very little meaning
-Textblob common text processing
-Sklearn Preprocessing Label Encoder = Encode target labels with value between 0 and n_classes-1.
+# tweets = pd.DataFrame(['I am so happy that I am stressed'])
+tweets = pd.DataFrame(sentences)
+
+# Text Preprocessing
+tweets[0] = tweets[0].str.replace('[^\w\s]', ' ')
+stop = stopwords.words('english')
+tweets[0] = tweets[0].apply(lambda x: " ".join(
+    x for x in x.split() if x not in stop))
+tweets[0] = tweets[0].apply(lambda x: " ".join(
+    [Word(word).lemmatize() for word in x.split()]))
+
+tweet_count = count_vect.transform(tweets[0])
+tweet_pred = lsvm.predict(tweet_count)
+
+print('\nNo | Mood  | Sentence ')
+for i in range(totalSentence):
+    if (tweet_pred[i] == 0):
+        print(f'{i + 1}  | Happy | ', end='')
+    else:
+        print(f'{i + 1}  | Sad   | ', end='')
+    print(sentences[i])
+```
+We then predict the input wheteher it is happy or sad
+ 
+# Library Used
+1. Sklearn
+2. NLTK
+3. Pandas
+4. Numpy
+
+# Algorithm Used
+We use Count Vector and Stochastic Gradient Descent Classifier. Using count vector we can vectorize collection of text documents into matrix of token. SGDClassifier is used to train itself from the datasets given.
+
+# Evaluation
+![Accuracy](https://raw.githubusercontent.com/KevinYobeth/Python-TextEmotionDetection/master/Accuracy.jpg)
+
+# Screen Capture
+![Input](https://raw.githubusercontent.com/KevinYobeth/Python-TextEmotionDetection/master/Input.JPG)
+Here we can see, we input the total sentence to be predicted. Then we input the sentence. The application then predict the sentence mood whether it is sad or happy. After predicting the result, the application then print the sentiment for each sentence.
+
+# Summary
+We first load and remove all irrelevant data from the datasets. Then we preprocess all the text so we can process the text later, we preprocess it by removing punctuation, stop words, lematize the word and remove the least 10000 words to appear since it can affect the prediction. For feature extraction we use Count Vectors. We label the dataset with 1 for sad and 0 for happy. After that we split the datasets into 2 part, testing and training. We use 70% of the data to train and the rest to test and validate the accuracy of it. For the classification, we use Stochastic Gradient Descent Classifier, since SGDClassifier is one of the best gradient descent method. Using the training data, we can then predict the sentence of choice.
+
+# Reference
 
 Notes:
 This codes aren't mine, but I have modified it a bit
