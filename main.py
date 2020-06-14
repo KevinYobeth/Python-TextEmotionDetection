@@ -1,15 +1,18 @@
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
 import pandas as pd
 import numpy as np
 import sklearn
-from nltk.corpus import stopwords
 from textblob import Word
 import re
 
-from sklearn import preprocessing
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import accuracy_score
-from sklearn.linear_model import SGDClassifier
+import nltk
+nltk.download('stopwords')
+nltk.download('wordnet')
+
 
 print('Please wait...')
 
@@ -45,6 +48,7 @@ data['content'] = data['content'].apply(
 # Lemmatisation
 data['content'] = data['content'].apply(lambda x: " ".join(
     [Word(word).lemmatize() for word in x.split()]))
+
 # Correcting Letter Repetitions
 
 
@@ -79,10 +83,10 @@ X_train_count = count_vect.transform(X_train)
 X_val_count = count_vect.transform(X_val)
 
 # Linear SVM
-lsvm = SGDClassifier(alpha=0.001, random_state=5, max_iter=15, tol=None)
+lsvm = SGDClassifier(alpha=0.01, random_state=5, max_iter=100, tol=None)
 lsvm.fit(X_train_count, y_train)
 y_pred = lsvm.predict(X_val_count)
-# print('lsvm using count vectors accuracy %s' % accuracy_score(y_pred, y_val))
+print('lsvm using count vectors accuracy %s' % accuracy_score(y_pred, y_val))
 
 totalSentence = int(input('Total sentence to input: '))
 
@@ -103,14 +107,11 @@ tweets[0] = tweets[0].apply(lambda x: " ".join(
 
 tweet_count = count_vect.transform(tweets[0])
 tweet_pred = lsvm.predict(tweet_count)
-tweet_conf = lsvm.decision_function(tweet_count)
 
-print(tweet_conf)
-
-print('\nNo | Mood  | Confidence\t| Sentence ')
+print('\nNo | Mood  | Sentence ')
 for i in range(totalSentence):
     if (tweet_pred[i] == 0):
-        print(f'{i + 1}  | Happy | {tweet_conf[i]:.2f}\t| ' , end='')
+        print(f'{i + 1}  | Happy | ', end='')
     else:
-        print(f'{i + 1}  | Sad   | {tweet_conf[i]:.2f}\t| ', end='')
+        print(f'{i + 1}  | Sad   | ', end='')
     print(sentences[i])
